@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\createAuthorsRequest;
 use App\Models\Author;
 use App\Models\AuthorBook;
 use App\Models\Book;
@@ -22,13 +23,9 @@ class AuthorController extends Controller
         return view('admin/authors/create', compact('books'));
     }
 
-    public function store(Request $request)
+    public function store(createAuthorsRequest $request)
     {
-        $validatedData = $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'biography' => 'required|max:1000'
-        ]);
+        $validatedData = $request->validated();
         $author = new Author($validatedData);
         $author->save();
         $bookId = $request->books;
@@ -60,25 +57,14 @@ class AuthorController extends Controller
         return view('admin/authors/edit', compact('author', 'books'));
     }
 
-    public function update(Request $request, $id)
+    public function update(createAuthorsRequest $request, $id)
     {
-        $validatedData = $request->validate([
-            'first_name' => 'required',
-            'last_name' => 'required',
-            'biography' => 'required|max:1000'
-        ]);
+        $validatedData = $request->validated();
         $author = Author::findOrFail($id);
         $author->update($validatedData);
-        AuthorBook::where('author_id', $id)
-            ->delete();
-        if ($request->books) {
-            foreach ($request->books as $key) {
-                $authorBook = new AuthorBook([
-                    'author_id' => $author->id,
-                    'book_id' => $key
-                ]);
-                $authorBook->save();
-            }
+        $author->books()->detach();
+        if ($request->has('books')) {
+            $author->books()->attach($request->books);
         }
         return redirect()->route('authors.index');
     }

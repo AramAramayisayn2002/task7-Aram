@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\createBooksRequest;
 use App\Models\Author;
 use App\Models\AuthorBook;
 use App\Models\Book;
@@ -22,28 +23,21 @@ class BookController extends Controller
         return view('admin/books/create', compact('authors'));
     }
 
-    public function store(Request $request)
+    public function store(createBooksRequest $request)
     {
-        $authorId = $request->authors;
-        if ($authorId) {
-            $validatedData = $request->validate([
-                'title' => 'required',
-                'description' => 'max:1000|required',
-                'publication_year' => 'integer|required|max:2024'
+        $authorsId = $request->authors;
+        $validatedData = $request->validated();
+        $book = new Book();
+        $book->fill($validatedData);
+        $book->save();
+        foreach ($authorsId as $key) {
+            $authorBook = new AuthorBook([
+                'author_id' => $key,
+                'book_id' => $book->id
             ]);
-            $book = new Book($validatedData);
-            $book->save();
-            foreach ($authorId as $key) {
-                $authorBook = new AuthorBook([
-                    'author_id' => $key,
-                    'book_id' => $book->id
-                ]);
-                $authorBook->save();
-            }
-            return redirect()->route('books.index');
-        } else {
-            return redirect()->route('books.create');
+            $authorBook->save();
         }
+        return redirect()->route('books.index');
     }
 
     public function search(Request $request)
@@ -60,27 +54,16 @@ class BookController extends Controller
         return view('admin/books/edit', compact('book', 'authors'));
     }
 
-    public function update(Request $request, $id)
+    public function update(CreateBooksRequest $request, $id)
     {
-        $authorId = $request->authors;
-        if ($authorId) {
-            $validatedData = $request->validate([
-                'title' => 'required',
-                'description' => 'max:1000|required',
-                'publication_year' => 'integer|required|max:2024'
-            ]);
+        $validatedData = $request->validated();
+
+        if (!empty($request->authors)) {
             $book = Book::findOrFail($id);
             $book->update($validatedData);
-            AuthorBook::where('book_id', $id)
-                ->delete();
-            foreach ($request->authors as $key) {
-                $authorBook = new AuthorBook([
-                    'author_id' => $key,
-                    'book_id' => $book->id
-                ]);
-                $authorBook->save();
-            }
+            $book->authors()->sync($request->authors);
         }
+
         return redirect()->route('books.index');
     }
 

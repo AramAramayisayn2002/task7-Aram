@@ -20,7 +20,7 @@ class AdminController extends Controller
             'password' => $request->password
         ];
         if (Auth::attempt(($array))) {
-            return redirect('admin/books');
+            return redirect()->route('books.index');
         }
         return back();
     }
