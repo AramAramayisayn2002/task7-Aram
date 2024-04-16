@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class createAuthorsRequest extends FormRequest
+class CreateAuthorsRequest extends FormRequest
 {
     public function authorize()
     {
@@ -16,7 +16,7 @@ class createAuthorsRequest extends FormRequest
         return [
             'first_name' => 'required|string',
             'last_name' => 'required|string',
-            'biography' => 'required|string',
+            'biography' => 'required|string'
         ];
     }
 }

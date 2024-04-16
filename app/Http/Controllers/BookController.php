@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\createBooksRequest;
+use App\Http\Requests\CreateBooksRequest;
 use App\Models\Author;
 use App\Models\AuthorBook;
 use App\Models\Book;
@@ -23,7 +23,7 @@ class BookController extends Controller
         return view('admin/books/create', compact('authors'));
     }
 
-    public function store(createBooksRequest $request)
+    public function store(CreateBooksRequest $request)
     {
         $authorsId = $request->authors;
         $validatedData = $request->validated();
@@ -60,10 +60,10 @@ class BookController extends Controller
 
         if (!empty($request->authors)) {
             $book = Book::findOrFail($id);
-            $book->update($validatedData);
+            $book->fill($validatedData);
+            $book->save();
             $book->authors()->sync($request->authors);
         }
-
         return redirect()->route('books.index');
     }
 

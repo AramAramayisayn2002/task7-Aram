@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\createAuthorsRequest;
+use App\Http\Requests\CreateAuthorsRequest;
 use App\Models\Author;
 use App\Models\AuthorBook;
 use App\Models\Book;
@@ -23,10 +23,11 @@ class AuthorController extends Controller
         return view('admin/authors/create', compact('books'));
     }
 
-    public function store(createAuthorsRequest $request)
+    public function store(CreateAuthorsRequest $request)
     {
         $validatedData = $request->validated();
-        $author = new Author($validatedData);
+        $author = new Author();
+        $author->fill($validatedData);
         $author->save();
         $bookId = $request->books;
         if ($bookId) {
@@ -57,11 +58,11 @@ class AuthorController extends Controller
         return view('admin/authors/edit', compact('author', 'books'));
     }
 
-    public function update(createAuthorsRequest $request, $id)
+    public function update(CreateAuthorsRequest $request, $id)
     {
         $validatedData = $request->validated();
         $author = Author::findOrFail($id);
-        $author->update($validatedData);
+        $author->fill($validatedData);
         $author->books()->detach();
         if ($request->has('books')) {
             $author->books()->attach($request->books);
